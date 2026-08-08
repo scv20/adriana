@@ -27,7 +27,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { ConversationProvider, useConversation } from "@elevenlabs/react";
 
-const AGENT_ID = "agent_3501kzg37g82emtrktsdzcqtcr5j";
+const AGENT_ID = "PASTE_YOUR_AGENT_ID_HERE";
 
 /* ════════════════════════════════════════════════════════════════
    ADRIANA, persona and interview rules (shared by every episode)
@@ -249,7 +249,7 @@ button{font-family:inherit;cursor:pointer}
     radial-gradient(720px 540px at 92% 58%, rgba(201,138,158,.24), transparent 62%),
     radial-gradient(560px 420px at 72% 6%, rgba(36,48,94,.12), transparent 60%),
     var(--paper)}
-.hero-lite{max-width:820px;margin:0 auto;text-align:center;padding:104px 20px 92px}
+.hero-lite{max-width:820px;margin:0 auto;text-align:center;padding:52px 20px 92px}
 .hero-lite h1{font-family:'Fraunces',serif;font-weight:340;
   font-size:clamp(42px,7vw,76px);line-height:1.04;letter-spacing:-.015em;margin-top:22px}
 .hero-lite h1 em{font-style:italic;font-weight:420;color:var(--navy)}
@@ -316,44 +316,53 @@ button.brandmark{cursor:pointer}
   gap:12px;flex-wrap:wrap}
 
 
-.studio{flex:1;display:flex;flex-direction:column;align-items:center;
-  padding:26px clamp(18px,5vw,48px) 30px}
+.studio{flex:1;display:flex;flex-direction:column;align-items:center;color:var(--ink);
+  padding:26px clamp(18px,5vw,48px) 44px;
+  background:
+    radial-gradient(640px 460px at 10% 6%, rgba(240,163,94,.20), transparent 62%),
+    radial-gradient(720px 540px at 92% 44%, rgba(201,138,158,.18), transparent 62%),
+    var(--paper)}
 .studio-top{width:100%;max-width:760px;display:flex;justify-content:space-between;align-items:center}
-.back{background:none;border:none;color:var(--cream-dim);font-size:13px;font-weight:600;
+.back{background:none;border:none;color:var(--paper-dim);font-size:13px;font-weight:600;
   display:flex;gap:8px;align-items:center;padding:8px 4px}
-.back:hover{color:var(--cream)}
+.back:hover{color:var(--ink)}
 .onair{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:800;
   letter-spacing:.22em;text-transform:uppercase}
-.onair i{width:8px;height:8px;border-radius:50%;background:var(--cream-dim);display:inline-block}
-.onair[data-live="true"]{color:var(--candle)}
+.onair{color:var(--paper-dim)}
+.onair i{width:8px;height:8px;border-radius:50%;background:#c9c9d4;display:inline-block}
+.onair[data-live="true"]{color:#b3641f}
 .onair[data-live="true"] i{background:var(--candle);animation:blink 1.6s ease infinite}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.35}}
 
 .stage{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
   gap:26px;width:100%;max-width:760px;text-align:center}
 .ep-title{font-family:'Fraunces',serif;font-weight:340;font-size:clamp(24px,3.6vw,34px)}
-.ep-title em{font-style:italic;color:var(--candle-soft)}
+.ep-title em{font-style:italic;color:var(--navy)}
 
 .orb-wrap{position:relative;width:min(46vw,230px);height:min(46vw,230px)}
+button.orb-wrap{background:none;border:none;padding:0;display:block}
+.orb-wrap.pressable{cursor:pointer}
+.orb-wrap.pressable:hover .orb{box-shadow:0 0 70px rgba(240,163,94,.55), 0 0 150px rgba(240,163,94,.25)}
+.orb-wrap.pressable:active .orb{transform:scale(.97)}
 .orb{position:absolute;inset:0;border-radius:50%;
-  background:radial-gradient(circle at 38% 32%, var(--candle-soft) 0%, var(--candle) 34%, #a4562b 78%, #6e3a22 100%);
+  background:var(--candle);
   box-shadow:0 0 60px rgba(240,163,94,.35), 0 0 140px rgba(240,163,94,.18);
   transition:transform .08s linear, box-shadow .3s ease}
-.orb[data-state="listening"]{filter:saturate(.75) brightness(.9)}
-.orb[data-state="idle"]{filter:saturate(.45) brightness(.72)}
-.halo{position:absolute;inset:-14%;border-radius:50%;border:1px solid rgba(240,163,94,.25);
+.orb[data-state="idle"]{box-shadow:0 0 34px rgba(240,163,94,.3)}
+.halo{position:absolute;inset:-14%;border-radius:50%;border:1.5px solid rgba(240,163,94,.5);
   animation:breathe 5s ease-in-out infinite}
+.halo.h2{inset:-26%;border-color:rgba(240,163,94,.28);animation-delay:-2.5s}
 @keyframes breathe{0%,100%{transform:scale(.97);opacity:.5}50%{transform:scale(1.03);opacity:1}}
 @media (prefers-reduced-motion:reduce){
   .halo{animation:none}
   .onair[data-live="true"] i{animation:none}
 }
 
-.state-line{font-size:12px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:var(--cream-dim)}
+.state-line{font-size:12px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:var(--paper-dim)}
 .caption{min-height:76px;max-width:620px;font-family:'Fraunces',serif;font-weight:340;
-  font-size:clamp(16px,2.4vw,20px);line-height:1.55;color:var(--cream)}
+  font-size:clamp(16px,2.4vw,20px);line-height:1.55;color:var(--ink)}
 .caption .who{display:block;font-family:'Nunito Sans';font-size:10px;font-weight:800;
-  letter-spacing:.22em;text-transform:uppercase;color:var(--candle);margin-bottom:8px}
+  letter-spacing:.22em;text-transform:uppercase;color:#b3641f;margin-bottom:8px}
 
 .controls{display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:center}
 .btn{border:none;border-radius:999px;padding:15px 30px;font-size:14px;font-weight:800;
@@ -361,25 +370,20 @@ button.brandmark{cursor:pointer}
 .btn-primary{background:var(--candle);color:var(--ink)}
 .btn-primary:hover{background:var(--candle-soft)}
 .btn-primary:disabled{opacity:.55;cursor:wait}
-.btn-ghost{background:transparent;color:var(--cream-dim);border:1px solid var(--line)}
-.btn-ghost:hover{color:var(--cream);border-color:var(--cream-dim)}
-.hint{font-size:12.5px;color:var(--cream-dim);max-width:460px;line-height:1.6}
-.hint.privacy{max-width:560px;font-size:11.5px;border:1px solid var(--line);
-  border-radius:12px;padding:12px 16px;text-align:left;background:rgba(246,239,230,.03)}
-.hint.privacy b{color:var(--cream);font-weight:800;letter-spacing:.06em;font-size:10.5px;
+.btn-ghost{background:transparent;color:var(--navy);border:1px solid #d8d8e2}
+.btn-ghost:hover{color:var(--ink);border-color:var(--navy)}
+.hint{font-size:12.5px;color:var(--paper-dim);max-width:460px;line-height:1.6}
+.hint.privacy{max-width:560px;font-size:11.5px;border:1px solid #ececf1;
+  border-radius:12px;padding:12px 16px;text-align:left;background:#ffffff}
+.hint.privacy b{color:var(--ink);font-weight:800;letter-spacing:.06em;font-size:10.5px;
   text-transform:uppercase;display:block;margin-bottom:4px}
-.err{font-size:13px;color:#f2b8a0;max-width:520px;line-height:1.6}
+.err{font-size:13px;color:#b04a2f;max-width:520px;line-height:1.6}
 
-.log{width:100%;max-width:640px;margin-top:8px;border-top:1px solid var(--line);
-  max-height:220px;overflow-y:auto;padding:16px 4px;text-align:left;display:grid;gap:12px}
-.log p{font-size:13.5px;line-height:1.6;color:var(--cream-dim)}
-.log p b{display:block;font-size:10px;font-weight:800;letter-spacing:.2em;
-  text-transform:uppercase;color:var(--candle);margin-bottom:2px}
 `;
 
 /* The on-air orb, swells with Adriana's real voice frequencies,
    flickers gently with the guest's mic level while listening. */
-function Orb({ conversation, active }) {
+function Orb({ conversation, active, onPress, pressLabel }) {
   const orbRef = useRef(null);
   useEffect(() => {
     if (!active) return;
@@ -421,11 +425,19 @@ function Orb({ conversation, active }) {
   }, [active]);
 
   const state = !active ? "idle" : conversation.isSpeaking ? "speaking" : "listening";
-  return (
-    <div className="orb-wrap" aria-hidden="true">
+  const core = (
+    <>
       <div className="halo" />
+      <div className="halo h2" />
       <div ref={orbRef} className="orb" data-state={state} />
-    </div>
+    </>
+  );
+  return onPress ? (
+    <button className="orb-wrap pressable" onClick={onPress} aria-label={pressLabel || "Begin the conversation"}>
+      {core}
+    </button>
+  ) : (
+    <div className="orb-wrap" aria-hidden="true">{core}</div>
   );
 }
 
@@ -436,7 +448,6 @@ function Studio({ episode, onLeave }) {
   const [paused, setPaused] = useState(false);
   const [error, setError] = useState(null);
   const [starting, setStarting] = useState(false);
-  const logRef = useRef(null);
 
   const overrides = useMemo(
     () => buildOverrides(episode, resumeMode === "resume" ? saved?.messages : null),
@@ -463,10 +474,6 @@ function Studio({ episode, onLeave }) {
   });
 
   const connected = conversation.status === "connected";
-
-  useEffect(() => {
-    logRef.current?.scrollTo({ top: logRef.current.scrollHeight, behavior: "smooth" });
-  }, [messages]);
 
   // Autosave the transcript to this browser as the conversation unfolds,
   // so "resume later" works even if the tab is closed abruptly.
@@ -549,10 +556,15 @@ function Studio({ episode, onLeave }) {
       <div className="stage">
         <div>
           <div className="eyebrow">Episode {episode.id} · Companion session</div>
-          <h2 className="ep-title"><em>{episode.title}</em>, you're the guest</h2>
+          <h2 className="ep-title"><em>{episode.title}</em></h2>
         </div>
 
-        <Orb conversation={conversation} active={connected && !paused} />
+        <Orb
+          conversation={conversation}
+          active={connected && !paused}
+          onPress={!connected && !starting ? () => begin(saved ? "resume" : "fresh") : undefined}
+          pressLabel={saved ? "Continue the conversation" : "Begin the conversation"}
+        />
 
         <div className="state-line" role="status">
           {connected
@@ -570,9 +582,8 @@ function Studio({ episode, onLeave }) {
         {!connected && (
           <>
             <p className="hint">
-              This is a hands-free conversation. Once you begin, Adriana will welcome
-              you and ask questions about the episode. Answer out loud, in your own
-              time.
+              Hands-free. Once you begin, Adriana will welcome you and interview
+              you about the episode. Just answer out loud.
             </p>
             <p className="hint privacy">
               <b>How your data is handled:</b> Adriana is an AI host. Your voice is
@@ -623,14 +634,6 @@ function Studio({ episode, onLeave }) {
             already saved in this browser, and she'll offer to continue next time.
           </p>
         )}
-
-        {messages.length > 0 && (
-          <div className="log" ref={logRef} aria-label="Conversation transcript">
-            {messages.map((m, i) => (
-              <p key={i}><b>{m.source === "user" ? "You" : "Adriana"}</b>{m.text}</p>
-            ))}
-          </div>
-        )}
       </div>
     </div>
   );
@@ -671,8 +674,8 @@ function Landing({ onOpenShow }) {
   return (
     <>
       <section className="chapter-light">
+        <div className="showtop"><SiteLogo /></div>
         <div className="hero-lite">
-          <SiteLogo hero />
           <h1>Today's guest is <em>you</em>.</h1>
           <p className="lede">
             Podside trains advanced AI companion hosts on every word of a show,
