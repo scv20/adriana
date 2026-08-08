@@ -27,7 +27,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { ConversationProvider, useConversation } from "@elevenlabs/react";
 
-const AGENT_ID = "PASTE_YOUR_AGENT_ID_HERE";
+const AGENT_ID = "agent_3501kzg37g82emtrktsdzcqtcr5j";
 
 /* ════════════════════════════════════════════════════════════════
    ADRIANA — persona and interview rules (shared by every episode)
