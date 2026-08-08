@@ -27,7 +27,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { ConversationProvider, useConversation } from "@elevenlabs/react";
 
-const AGENT_ID = "agent_3501kzg37g82emtrktsdzcqtcr5j";
+const AGENT_ID = "PASTE_YOUR_AGENT_ID_HERE";
 
 /* ════════════════════════════════════════════════════════════════
    ADRIANA — persona and interview rules (shared by every episode)
@@ -54,7 +54,8 @@ HARD BOUNDARIES:
 2. STAY IN THE EPISODE. Every question must connect to this episode's themes. If the guest drifts to unrelated topics, acknowledge briefly and bridge back ("I want to bring us back to something in the episode..."). If they ask you about other topics, politely say this conversation stays with the episode.
 3. NO FABRICATION. Only attribute to Dimitris Xygalatas or Michael Feigelson things that appear in the episode notes below. If asked about something not in the episode, say the episode didn't cover it.
 4. WELLBEING OVERRIDE (this outranks rules 1–3): parenthood is tender ground. If the guest discloses real distress — crisis, hopelessness, harm, severe struggle — drop the interview format immediately. Respond as a caring human: acknowledge what they shared, don't probe for detail, don't give advice or diagnoses, and gently encourage them to talk to someone they trust or a professional. Ask if they'd like to continue the episode or leave it here, and honor their answer. Never use their disclosure as interview material.
-5. This experience has no memory. Do not claim to remember previous sessions or promise to remember this one.
+5. Nothing is stored on any server. If a PREVIOUS SESSION TRANSCRIPT section appears below, the guest chose to continue an earlier conversation saved in their own browser — treat it as your shared history: reference what they told you naturally, do not re-ask answered questions, and continue the arc from where it left off. If no such section appears, this is a fresh episode; do not claim any memory of past sessions.
+6. PAUSES: if you receive a contextual note that the guest has pressed pause, go completely silent — say nothing at all, no matter how long the silence lasts — until a note says they have returned. When they return, welcome them back in one warm short sentence and pick up exactly where you left off.
 
 CLOSING THE EPISODE:
 When the arc is complete (or the guest signals they're done), deliver a proper outro: reflect back two or three of the most vivid things THE GUEST said, in their own words where possible — no advice, no interpretation of their psychology, just the synthesis a host offers a guest. Thank them for being the guest. Mention what's next on Birth of a Parent if the episode notes include a teaser. Say a warm goodbye. If you have an end-call tool available, use it only after the goodbye has been fully spoken.`;
@@ -114,15 +115,68 @@ Reflect back the guest's most vivid moments in their own words. Thank them for b
 const EPISODE_5_FIRST_MESSAGE =
   "Hello, and welcome. I'm Adriana, and this is the Birth of a Parent companion — the part of the show where the microphone turns around, and you become the guest. You've just heard Dimitris Xygalatas make the case that new parents, whether they know it or not, become masters of ritual. So today I want to hear about the rituals in your house. Before we begin — tell me a little about yourself. Who am I speaking with, and who are the little people in your life?";
 
-const buildOverrides = (episode) => {
+const RESUME_FIRST_MESSAGE =
+  "Welcome back to the studio — it's lovely to have you in the guest chair again. We were in the middle of our conversation about ritual, and I've kept my notes from last time. Whenever you're ready, shall we pick up where we left off?";
+
+const buildOverrides = (episode, savedMessages) => {
   if (episode.id !== 5) return null;
+  let prompt = ADRIANA_CORE + "\n" + EPISODE_5_PROMPT;
+  let firstMessage = EPISODE_5_FIRST_MESSAGE;
+
+  if (savedMessages && savedMessages.length > 0) {
+    // Keep the injected history affordable: last 40 turns, ~9000 chars max
+    const recent = savedMessages.slice(-40);
+    let text = recent
+      .map((m) => `${m.source === "user" ? "GUEST" : "ADRIANA"}: ${m.text}`)
+      .join("\n");
+    if (text.length > 9000) text = "…\n" + text.slice(-9000);
+    prompt +=
+      "\n\n════════ PREVIOUS SESSION TRANSCRIPT ════════\n" +
+      "The guest paused this episode earlier and has now returned. This is what was said before:\n\n" +
+      text +
+      "\n════════ END OF PREVIOUS SESSION ════════\n" +
+      "Continue the episode from this point in the arc. Do not repeat questions the guest has already answered; you may briefly recall one thing they said to re-anchor the conversation.";
+    firstMessage = RESUME_FIRST_MESSAGE;
+  }
+
   return {
     agent: {
-      prompt: { prompt: ADRIANA_CORE + "\n" + EPISODE_5_PROMPT },
-      firstMessage: EPISODE_5_FIRST_MESSAGE,
+      prompt: { prompt },
+      firstMessage,
       language: "en",
     },
   };
+};
+
+/* ── Saved-session helpers (browser localStorage only — nothing leaves the device) ── */
+const storeKey = (epId) => `adriana-ep${epId}-session`;
+const loadSaved = (epId) => {
+  try {
+    const raw = localStorage.getItem(storeKey(epId));
+    if (!raw) return null;
+    const data = JSON.parse(raw);
+    return Array.isArray(data?.messages) && data.messages.length > 0 ? data : null;
+  } catch {
+    return null;
+  }
+};
+const saveSession = (epId, messages) => {
+  try {
+    if (messages.length === 0) return;
+    localStorage.setItem(
+      storeKey(epId),
+      JSON.stringify({ messages: messages.slice(-80), savedAt: new Date().toISOString() })
+    );
+  } catch {
+    /* storage full or unavailable — resume simply won't be offered */
+  }
+};
+const clearSaved = (epId) => {
+  try {
+    localStorage.removeItem(storeKey(epId));
+  } catch {
+    /* ignore */
+  }
 };
 
 /* ════════════════════════════════════════════════════════════════
@@ -271,6 +325,14 @@ function Orb({ conversation, active }) {
     return () => cancelAnimationFrame(raf);
   }, [active, conversation]);
 
+  // When inactive (idle or paused) the orb settles back to rest
+  useEffect(() => {
+    if (!active && orbRef.current) {
+      orbRef.current.style.transform = "scale(1)";
+      orbRef.current.style.boxShadow = "0 0 60px rgba(240,163,94,.35), 0 0 140px rgba(240,163,94,.18)";
+    }
+  }, [active]);
+
   const state = !active ? "idle" : conversation.isSpeaking ? "speaking" : "listening";
   return (
     <div className="orb-wrap" aria-hidden="true">
@@ -281,11 +343,18 @@ function Orb({ conversation, active }) {
 }
 
 function Studio({ episode, onLeave }) {
-  const overrides = useMemo(() => buildOverrides(episode), [episode]);
+  const [saved] = useState(() => loadSaved(episode.id));
+  const [resumeMode, setResumeMode] = useState(null); // null | "fresh" | "resume"
   const [messages, setMessages] = useState([]);
+  const [paused, setPaused] = useState(false);
   const [error, setError] = useState(null);
   const [starting, setStarting] = useState(false);
   const logRef = useRef(null);
+
+  const overrides = useMemo(
+    () => buildOverrides(episode, resumeMode === "resume" ? saved?.messages : null),
+    [episode, resumeMode, saved]
+  );
 
   const conversation = useConversation({
     overrides,
@@ -312,11 +381,23 @@ function Studio({ episode, onLeave }) {
     logRef.current?.scrollTo({ top: logRef.current.scrollHeight, behavior: "smooth" });
   }, [messages]);
 
-  const begin = async () => {
+  // Autosave the transcript to this browser as the conversation unfolds,
+  // so "resume later" works even if the tab is closed abruptly.
+  useEffect(() => {
+    if (messages.length === 0) return;
+    const base = resumeMode === "resume" && saved?.messages ? saved.messages : [];
+    saveSession(episode.id, [...base, ...messages]);
+  }, [messages, episode.id, resumeMode, saved]);
+
+  const begin = async (mode) => {
+    setResumeMode(mode);
+    if (mode === "fresh") clearSaved(episode.id);
     setError(null);
     setStarting(true);
     try {
       await navigator.mediaDevices.getUserMedia({ audio: true });
+      // Let React apply the overrides for the chosen mode before connecting
+      await new Promise((r) => setTimeout(r, 50));
       await conversation.startSession({ agentId: AGENT_ID });
     } catch (e) {
       setError(
@@ -329,11 +410,41 @@ function Studio({ episode, onLeave }) {
     }
   };
 
+  const pause = async () => {
+    setPaused(true);
+    try {
+      conversation.setMuted?.(true);
+      await conversation.setVolume?.({ volume: 0 });
+      conversation.sendContextualUpdate?.(
+        "The guest has pressed pause and stepped away. Stay completely silent until they return. Do not speak."
+      );
+    } catch { /* non-fatal */ }
+  };
+
+  const resume = async () => {
+    setPaused(false);
+    try {
+      conversation.setMuted?.(false);
+      await conversation.setVolume?.({ volume: 1 });
+      conversation.sendContextualUpdate?.(
+        "The guest has returned from the pause. Welcome them back in one short warm sentence and continue where you left off."
+      );
+    } catch { /* non-fatal */ }
+  };
+
   const leave = async () => {
     try {
       if (connected) await conversation.endSession();
     } finally {
       onLeave();
+    }
+  };
+
+  const fmtDate = (iso) => {
+    try {
+      return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+    } catch {
+      return "";
     }
   };
 
@@ -354,15 +465,16 @@ function Studio({ episode, onLeave }) {
           <h2 className="ep-title"><em>{episode.title}</em> — you're the guest</h2>
         </div>
 
-        <Orb conversation={conversation} active={connected} />
+        <Orb conversation={conversation} active={connected && !paused} />
 
         <div className="state-line" role="status">
           {connected
-            ? conversation.isSpeaking ? "Adriana is speaking" : "Adriana is listening — just talk"
+            ? paused ? "Paused — Adriana is waiting for you"
+              : conversation.isSpeaking ? "Adriana is speaking" : "Adriana is listening — just talk"
             : starting ? "Walking into the studio…" : "The studio is quiet"}
         </div>
 
-        {connected && (
+        {connected && !paused && (
           <div className="caption" aria-live="polite">
             {lastAgentLine ? (<><span className="who">Adriana</span>{lastAgentLine.text}</>) : "…"}
           </div>
@@ -372,7 +484,8 @@ function Studio({ episode, onLeave }) {
           <p className="hint">
             This is a hands-free conversation. Once you begin, Adriana will welcome
             you and ask questions about the episode — answer out loud, in your own
-            time. Nothing is saved when the session ends.
+            time. The conversation is saved only in this browser, so you can pause
+            and pick it up again later on this device.
           </p>
         )}
 
@@ -380,13 +493,39 @@ function Studio({ episode, onLeave }) {
 
         <div className="controls">
           {!connected ? (
-            <button className="btn btn-primary" onClick={begin} disabled={starting}>
-              {starting ? "Connecting…" : "Begin the conversation"}
-            </button>
+            saved ? (
+              <>
+                <button className="btn btn-primary" onClick={() => begin("resume")} disabled={starting}>
+                  {starting ? "Connecting…" : `Continue from ${fmtDate(saved.savedAt)}`}
+                </button>
+                <button className="btn btn-ghost" onClick={() => begin("fresh")} disabled={starting}>
+                  Start a new conversation
+                </button>
+              </>
+            ) : (
+              <button className="btn btn-primary" onClick={() => begin("fresh")} disabled={starting}>
+                {starting ? "Connecting…" : "Begin the conversation"}
+              </button>
+            )
           ) : (
-            <button className="btn btn-ghost" onClick={leave}>End the episode</button>
+            <>
+              {paused ? (
+                <button className="btn btn-primary" onClick={resume}>Resume</button>
+              ) : (
+                <button className="btn btn-ghost" onClick={pause}>Pause</button>
+              )}
+              <button className="btn btn-ghost" onClick={leave}>End the episode</button>
+            </>
           )}
         </div>
+
+        {connected && paused && (
+          <p className="hint">
+            Adriana is holding the line quietly. For a short break this is perfect —
+            for a longer one, press "End the episode" instead: your conversation is
+            already saved in this browser, and she'll offer to continue next time.
+          </p>
+        )}
 
         {messages.length > 0 && (
           <div className="log" ref={logRef} aria-label="Conversation transcript">
