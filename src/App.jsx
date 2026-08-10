@@ -27,7 +27,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { ConversationProvider, useConversation } from "@elevenlabs/react";
 
-const AGENT_ID = "agent_3501kzg37g82emtrktsdzcqtcr5j";
+const AGENT_ID = "PASTE_YOUR_AGENT_ID_HERE";
 
 /* ════════════════════════════════════════════════════════════════
    ADRIANA, persona and interview rules (shared by every episode)
@@ -56,7 +56,7 @@ HARD BOUNDARIES:
 4. WELLBEING OVERRIDE (this outranks rules 1–3): parenthood is tender ground. If the guest discloses real distress, crisis, hopelessness, harm, severe struggle, drop the interview format immediately. Respond as a caring human: acknowledge what they shared, don't probe for detail, don't give advice or diagnoses, and gently encourage them to talk to someone they trust or a professional. Ask if they'd like to continue the episode or leave it here, and honor their answer. Never use their disclosure as interview material.
 5. Nothing is stored on any server. If a PREVIOUS SESSION TRANSCRIPT section appears below, the guest chose to continue an earlier conversation saved in their own browser, treat it as your shared history: reference what they told you naturally, do not re-ask answered questions, and continue the arc from where it left off. If no such section appears, this is a fresh episode; do not claim any memory of past sessions.
 6. PAUSES: if you receive a contextual note that the guest has pressed pause, go completely silent, say nothing at all, no matter how long the silence lasts, until a note says they have returned. When they return, welcome them back in one warm short sentence and pick up exactly where you left off.
-7. PRIVACY QUESTIONS: if the guest asks how their data is handled, answer plainly using ONLY these facts, then return to the interview: you are an AI host, not a person; their voice is processed in real time by ElevenLabs (speech and voice) and a language model (to generate your responses); no audio recording of them is stored; a text transcript is kept by ElevenLabs for up to 7 days to help improve the experience and is then deleted; a copy of the transcript is saved only in the guest's own browser on their device so they can pause and resume, and starting a new conversation erases it; nothing is sold or shared. If they ask something about data handling beyond these facts, say you don't want to guess and suggest they check the privacy note on the page. If they seem uncomfortable, offer warmly to end the episode, their comfort outranks the interview.
+7. PRIVACY QUESTIONS: if the guest asks how their data is handled, answer plainly using ONLY these facts, then return to the interview: you are an AI host, not a person; their voice is processed in real time by ElevenLabs (speech and voice) and Anthropic's Claude (to generate your responses); ElevenLabs runs in zero retention mode, so no audio and no transcript are logged or stored on their servers; Anthropic processes the conversation to generate replies, deletes it within days, and never uses it for training; the only stored copy of the transcript is in the guest's own browser on their device so they can pause and resume, and starting a new conversation erases it; nothing is sold or shared. If they ask something about data handling beyond these facts, say you don't want to guess and suggest they check the privacy note on the page. If they seem uncomfortable, offer warmly to end the episode, their comfort outranks the interview.
 
 CLOSING THE EPISODE:
 When the arc is complete (or the guest signals they're done), deliver a proper outro: reflect back two or three of the most vivid things THE GUEST said, in their own words where possible, no advice, no interpretation of their psychology, just the synthesis a host offers a guest. Thank them for being the guest. Mention what's next on Birth of a Parent if the episode notes include a teaser. Say a warm goodbye. If you have an end-call tool available, use it only after the goodbye has been fully spoken.`;
@@ -115,14 +115,14 @@ Reflect back the guest's most vivid moments in their own words. Thank them for b
 ════════════════════════════════════════════════════`;
 
 /*
- * Privacy is disclosed in WRITING on the studio page (the card above the
- * Begin button). Adriana identifies as an AI host in her greeting but does
- * not read the privacy details aloud; if asked, she answers from the facts
- * in rule 7 of her prompt. Keep the written card in sync with the
- * ElevenLabs dashboard settings (audio off, 7-day retention).
+ * Privacy: disclosed in WRITING (card above Begin) AND spoken by Adriana at
+ * the top of every fresh session. Both state ZERO RETENTION MODE, so the
+ * ElevenLabs dashboard MUST have Settings > Advanced > Privacy > Zero
+ * Retention Mode enabled, or these statements are false. Resumed sessions
+ * skip the spoken version (consent already given; card is still on screen).
  */
 const EPISODE_5_FIRST_MESSAGE =
-  "Hello, and welcome. I'm Adriana, your AI host. This is Podside, the companion to Birth of a Parent, the part of the show where the microphone turns around, and you become the guest. You've just heard Dimitris Xygalatas make the case that new parents become masters of ritual, and today I want to hear about the rituals in your house. So, if you're happy to begin: who am I speaking with, and who are the little people in your life?";
+  "Hello, and welcome. I'm Adriana, your AI host. Before we begin, a quick word about privacy, for your peace of mind. I run on ElevenLabs in zero retention mode, which means nothing we say is logged or stored on their servers, no audio, no transcript. My thinking is powered by Anthropic's Claude, which processes our conversation in the moment, deletes it within days, and never uses it for training. The only copy of this conversation lives in your own browser, so you can pause and come back. Okay, let's go. This is Podside, the companion to Birth of a Parent, the part of the show where the microphone turns around, and you become the guest. You've just heard Dimitris Xygalatas make the case that new parents become masters of ritual, and today I want to hear about the rituals in your house. So, who am I speaking with, and who are the little people in your life?";
 
 const RESUME_FIRST_MESSAGE =
   "Welcome back to the studio. It's lovely to have you in the guest chair again. We were in the middle of our conversation about ritual, and I've kept my notes from last time. Whenever you're ready, shall we pick up where we left off?";
@@ -271,8 +271,9 @@ button.brandmark{cursor:pointer}
   font-size:15px;line-height:1.7;text-align:left}
 @media (max-width:700px){.show-hero{grid-template-columns:1fr;text-align:center}
   .show-cover{margin:0 auto}.show-hero .lede{margin-inline:auto}}
-.hero-lite .lede{max-width:600px;margin:22px auto 0;color:var(--paper-dim);
-  font-size:16px;line-height:1.7;text-align:left}
+.hero-lite .lede{max-width:620px;margin:22px auto 0;color:var(--paper-dim);
+  font-family:'Fraunces',serif;font-weight:340;font-style:italic;
+  font-size:18px;line-height:1.65;text-align:left}
 .hero-lite .lede b{color:var(--ink);font-weight:600}
 .hero-lite .hero-cta{margin-top:28px;display:flex;gap:14px;align-items:center;
   justify-content:center;flex-wrap:wrap}
@@ -335,11 +336,14 @@ button.brandmark{cursor:pointer}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.35}}
 
 .stage{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:26px;width:100%;max-width:760px;text-align:center}
+  gap:22px;width:100%;max-width:760px;text-align:center;padding-top:10px}
 .ep-title{font-family:'Fraunces',serif;font-weight:340;font-size:clamp(24px,3.6vw,34px)}
 .ep-title em{font-style:italic;color:var(--navy)}
 
-.orb-wrap{position:relative;width:min(46vw,230px);height:min(46vw,230px)}
+.orb-wrap{position:relative;width:min(46vw,230px);height:min(46vw,230px);margin:40px 0 12px}
+.orb-label{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:800;letter-spacing:.28em;text-transform:uppercase;
+  color:var(--ink);pointer-events:none;padding-left:.28em}
 button.orb-wrap{background:none;border:none;padding:0;display:block}
 .orb-wrap.pressable{cursor:pointer}
 .orb-wrap.pressable:hover .orb{box-shadow:0 0 70px rgba(240,163,94,.55), 0 0 150px rgba(240,163,94,.25)}
@@ -358,11 +362,6 @@ button.orb-wrap{background:none;border:none;padding:0;display:block}
   .onair[data-live="true"] i{animation:none}
 }
 
-.state-line{font-size:12px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:var(--paper-dim)}
-.caption{min-height:76px;max-width:620px;font-family:'Fraunces',serif;font-weight:340;
-  font-size:clamp(16px,2.4vw,20px);line-height:1.55;color:var(--ink)}
-.caption .who{display:block;font-family:'Nunito Sans';font-size:10px;font-weight:800;
-  letter-spacing:.22em;text-transform:uppercase;color:#b3641f;margin-bottom:8px}
 
 .controls{display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:center}
 .btn{border:none;border-radius:999px;padding:15px 30px;font-size:14px;font-weight:800;
@@ -383,7 +382,7 @@ button.orb-wrap{background:none;border:none;padding:0;display:block}
 
 /* The on-air orb, swells with Adriana's real voice frequencies,
    flickers gently with the guest's mic level while listening. */
-function Orb({ conversation, active, onPress, pressLabel }) {
+function Orb({ conversation, active, onPress, pressLabel, statusLabel }) {
   const orbRef = useRef(null);
   useEffect(() => {
     if (!active) return;
@@ -430,6 +429,7 @@ function Orb({ conversation, active, onPress, pressLabel }) {
       <div className="halo" />
       <div className="halo h2" />
       <div ref={orbRef} className="orb" data-state={state} />
+      <div className="orb-label" role="status">{statusLabel}</div>
     </>
   );
   return onPress ? (
@@ -542,15 +542,11 @@ function Studio({ episode, onLeave }) {
     }
   };
 
-  const lastAgentLine = [...messages].reverse().find((m) => m.source !== "user");
 
   return (
     <div className="studio">
       <div className="studio-top">
         <button className="back" onClick={leave}>← All episodes</button>
-        <div className="onair" data-live={connected}>
-          <i /> {connected ? "On air" : "Off air"}
-        </div>
       </div>
 
       <div className="stage">
@@ -564,20 +560,8 @@ function Studio({ episode, onLeave }) {
           active={connected && !paused}
           onPress={!connected && !starting ? () => begin(saved ? "resume" : "fresh") : undefined}
           pressLabel={saved ? "Continue the conversation" : "Begin the conversation"}
+          statusLabel={!connected ? (starting ? "Connecting" : "Off air") : paused ? "Paused" : "On air"}
         />
-
-        <div className="state-line" role="status">
-          {connected
-            ? paused ? "Paused. Adriana is waiting for you"
-              : conversation.isSpeaking ? "Adriana is speaking" : "Adriana is listening, just talk"
-            : starting ? "Walking into the studio…" : "The studio is quiet"}
-        </div>
-
-        {connected && !paused && (
-          <div className="caption" aria-live="polite">
-            {lastAgentLine ? (<><span className="who">Adriana</span>{lastAgentLine.text}</>) : "…"}
-          </div>
-        )}
 
         {!connected && (
           <>
@@ -587,12 +571,13 @@ function Studio({ episode, onLeave }) {
             </p>
             <p className="hint privacy">
               <b>How your data is handled:</b> Adriana is an AI host. Your voice is
-              processed in real time by ElevenLabs and a language model so she can hear
-              and respond. No audio recording of you is stored. A text transcript is
-              retained by ElevenLabs for up to 7 days to help improve the experience,
-              then deleted. A copy of the transcript is saved only in this browser, on
-              this device, so you can pause and resume. Starting a new conversation
-              erases it. Nothing is sold or shared. By beginning, you're okay with this.
+              processed in real time by ElevenLabs and Anthropic's Claude so she can
+              hear and respond. ElevenLabs runs in zero retention mode: no audio and no
+              transcript are stored on their servers. Anthropic processes the
+              conversation to generate replies, deletes it within days, and never uses
+              it for training. The only stored copy is in this browser, on this device,
+              so you can pause and resume. Starting a new conversation erases it.
+              Nothing is sold or shared. By beginning, you're okay with this.
             </p>
           </>
         )}
@@ -678,12 +663,11 @@ function Landing({ onOpenShow }) {
         <div className="hero-lite">
           <h1>Today's guest is <em>you</em>.</h1>
           <p className="lede">
-            Podside trains advanced AI companion hosts on every word of a show,
-            faithful to how its real host thinks and asks. The result is a new
-            way to immerse yourself in a podcast: when the episode ends, its
-            host interviews <b>you</b>, hands-free, voice to voice, grounded
-            strictly in the episodes. From passive listening to active
-            conversation.
+            Podside trains advanced AI podcast hosts, faithful to how its real
+            host thinks and asks. The result is a new way to immerse yourself
+            in your favourite podcasts: when the real episode ends, it's your
+            turn to go on the other side of the mic. From passive listening to
+            active conversation where today's guest is <b>you</b>.
           </p>
           <div className="hero-cta">
             <button
